@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using BrokenEvent.FLVMagic.FLV.Packets;
+using BrokenEvent.FLVEx.FLV.Packets;
 using BrokenEvent.Shared.Algorithms;
 
 using ConsoleApp8.FLV;
 
-namespace BrokenEvent.FLVMagic.FLV
+namespace BrokenEvent.FLVEx.FLV
 {
   class FLVFile: IDisposable
   {

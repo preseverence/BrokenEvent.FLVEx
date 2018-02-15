@@ -1,6 +1,6 @@
 ﻿using BrokenEvent.Shared.Algorithms;
 
-namespace BrokenEvent.FLVMagic.FLV.Packets
+namespace BrokenEvent.FLVEx.FLV.Packets
 {
   static class PacketFactory
   {

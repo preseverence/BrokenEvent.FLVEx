@@ -130,11 +130,20 @@ namespace BrokenEvent.Shared.Algorithms
         allDescs.Add(desc);
       }
 
+      int lastRequiredIndex = -1;
       for (int i = 0; i < unnamedDict.Count; i++)
       {
         PropertyDescriptor desc;
         if (!unnamedDict.TryGetValue(i, out desc))
           throw new ArgumentException($"Missing unnamed index {i}");
+
+        if (desc.Attribute.IsRequired)
+        {
+          if (i > lastRequiredIndex + 1)
+            throw new ArgumentException($"Can't set unnamed arg #{i} as required as unnamed args before are not required.");
+
+          lastRequiredIndex = i;
+        }
 
         unnamedDescs.Add(desc);
       }
@@ -254,11 +263,16 @@ namespace BrokenEvent.Shared.Algorithms
       }
 
       // validate
-      for (int i = 0; i < descs.Count; i++)
+      for (int i = 0; i < allDescs.Count; i++)
       {
-        if (!descs[i].IsRequiredSet)
+        PropertyDescriptor d = allDescs[i];
+
+        if (!d.IsRequiredSet)
         {
-          OnError(string.Format("Required argument is missing: {0}", descs[i].Attribute.Name));
+          if (d.Attribute.Name != null)
+            OnError(string.Format("Required argument is missing: {0}", d.Attribute.Name));
+          else
+            OnError(string.Format("Required argument is missing: #{0}", d.Attribute.UnnamedIndex));
           return false;
         }
       }
@@ -320,7 +334,7 @@ namespace BrokenEvent.Shared.Algorithms
 
       Console.WriteLine("Arguments:");
 
-      foreach (PropertyDescriptor desc in descs)
+      foreach (PropertyDescriptor desc in allDescs)
       {
         if (string.IsNullOrEmpty(desc.Attribute.Usage))
           continue;

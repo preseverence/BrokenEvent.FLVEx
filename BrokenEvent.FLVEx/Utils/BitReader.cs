@@ -1,4 +1,4 @@
-﻿namespace BrokenEvent.FLVMagic.Utils
+﻿namespace BrokenEvent.FLVEx.Utils
 {
   class BitReader
   {

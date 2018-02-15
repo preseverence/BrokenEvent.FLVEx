@@ -1,7 +1,7 @@
-﻿using BrokenEvent.FLVMagic.Utils;
+﻿using BrokenEvent.FLVEx.Utils;
 using BrokenEvent.Shared.Algorithms;
 
-namespace BrokenEvent.FLVMagic.FLV.Packets
+namespace BrokenEvent.FLVEx.FLV.Packets
 {
   class VideoPacket: StreamCopyPacket
   {

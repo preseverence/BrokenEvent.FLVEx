@@ -1,11 +1,11 @@
 ﻿using BrokenEvent.Shared.Algorithms;
 
-namespace BrokenEvent.FLVMagic
+namespace BrokenEvent.FLVEx
 {
   [CommandModel("BrokenEvent.FLVEx, (c) 2018 BrokenEvent. All rights reserved.")]
   class CmdModel
   {
-    [Command(0, "Input FLV file", "inFile", isRequired: true)]
+    [Command(0, "Input FLV file.", "inFile", isRequired: true)]
     public string InputFile { get; set; }
 
     [Command(1, "Output filename. Will overwrite input file if omitted.", "outFile")]
@@ -23,7 +23,7 @@ namespace BrokenEvent.FLVMagic
     [Command("noMeta", "Removes metadata from file. Not compatible with fixMeta.", isFlag: true)]
     public bool RemoveMetadata { get; set; }
 
-    [Command("preserve", "Preserved last file changes date of the file", isFlag: true)]
+    [Command("preserve", "Preserved last file changes date of the file.", isFlag: true)]
     public bool PreserveDate { get; set; }
   }
 }

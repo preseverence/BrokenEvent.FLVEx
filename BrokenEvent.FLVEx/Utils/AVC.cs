@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-using BrokenEvent.FLVMagic.FLV.Packets;
+using BrokenEvent.FLVEx.FLV.Packets;
 using BrokenEvent.Shared.Algorithms;
 
-namespace BrokenEvent.FLVMagic.Utils
+namespace BrokenEvent.FLVEx.Utils
 {
   /// <summary>
   /// https://github.com/noirotm/flvmeta

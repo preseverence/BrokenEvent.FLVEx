@@ -1,10 +1,10 @@
 ﻿using System;
 using System.IO;
 
-using BrokenEvent.FLVMagic.FLV;
+using BrokenEvent.FLVEx.FLV;
 using BrokenEvent.Shared.Algorithms;
 
-namespace BrokenEvent.FLVMagic
+namespace BrokenEvent.FLVEx
 {
   class Program
   {
