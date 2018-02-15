@@ -17,7 +17,6 @@ namespace BrokenEvent.FLVEx.FLV.Packets
 
     internal VideoPacket(DataStream stream, uint prevPacketSize, PacketType type): base(stream, prevPacketSize, type)
     {
-      // real format is H264, 30 fps, 125kbps, 786x464
       byte b = stream.ReadByte();
       FrameType = (VideoFrameType)((b >> 4) & 0xF);
       CodecId = (VideoCodecId)((b >> 0) & 0xF);

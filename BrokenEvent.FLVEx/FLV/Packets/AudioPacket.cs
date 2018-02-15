@@ -53,7 +53,6 @@ namespace BrokenEvent.FLVEx.FLV.Packets
 
     internal AudioPacket(DataStream stream, uint prevPacketSize, PacketType type): base(stream, prevPacketSize, type)
     {
-      // real format is AAC, 44kHz, stereo: 10 3
       byte b = stream.ReadByte();
 
       SoundFormat = (SoundFormat)((b >> 4) & 0xF);
