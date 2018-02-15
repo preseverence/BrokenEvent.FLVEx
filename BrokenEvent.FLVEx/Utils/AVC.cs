@@ -8,6 +8,7 @@ namespace BrokenEvent.FLVEx.Utils
   /// <summary>
   /// https://github.com/noirotm/flvmeta
   /// </summary>
+  /// <remarks>I do not pretend to understand what is really going on here, but it makes the job done.</remarks>
   static class AVC
   {
     public static bool Read(DataStream stream, ref int width, ref int height)

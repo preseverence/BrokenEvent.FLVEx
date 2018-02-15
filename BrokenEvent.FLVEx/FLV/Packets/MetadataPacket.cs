@@ -30,14 +30,13 @@ namespace BrokenEvent.FLVEx.FLV.Packets
 
     internal static void ReadVars(DataStream stream, Dictionary<string, object> vars)
     {
-      // this is not unknown stuff, it's just a string.
-      stream.Position += 1; // skip some strange stuff
+      stream.Position += 1; // skip type mark (string)
 
       if (ReadASString(stream) != MARKER)
         throw new InvalidOperationException("Invalid metadata marker");
 
-      stream.Position += 1; // skip type mark
-      int maxArrayIndex = stream.ReadInt();
+      stream.Position += 1; // skip type mark (mixed array)
+      int maxArrayIndex = stream.ReadInt(); // max index aka count
 
       for (int i = 0; i < maxArrayIndex; i++)
       {
