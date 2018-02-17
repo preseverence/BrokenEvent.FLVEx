@@ -23,7 +23,7 @@ namespace BrokenEvent.FLVEx
     [Command("noMeta", "Removes metadata from file. Not compatible with fixMeta.", isFlag: true)]
     public bool RemoveMetadata { get; set; }
 
-    [Command("preserve", "Preserved last file changes date of the file.", isFlag: true)]
+    [Command("preserve", "Preserves last file changes date of the file.", isFlag: true)]
     public bool PreserveDate { get; set; }
   }
 }

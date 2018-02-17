@@ -299,8 +299,11 @@ namespace BrokenEvent.Shared.Algorithms
     {
       if (modelAttribute != null)
       {
-        Console.WriteLine(modelAttribute.UsageText);
-        Console.WriteLine();
+        if (!string.IsNullOrWhiteSpace(modelAttribute.UsageText))
+        {
+          Console.WriteLine(modelAttribute.UsageText);
+          Console.WriteLine();
+        }
       }
 
       Console.WriteLine("Usage:");
@@ -353,7 +356,26 @@ namespace BrokenEvent.Shared.Algorithms
         if (!desc.Attribute.IsRequired)
           comment += " Optional.";
 
-        Console.WriteLine("{0,-16} {1}", name, comment);
+        const int ARG_WIDTH = 16;
+
+        name = name.PadRight(ARG_WIDTH);
+        if (name.Length > ARG_WIDTH)
+          name += " ";
+        Console.Write(name);
+        int i = 0;
+        int totalLength = Console.WindowWidth - name.Length;
+        while (comment.Length - i > totalLength)
+        {
+          Console.Write(comment.Substring(i, totalLength).PadLeft(ARG_WIDTH));
+          Console.Write("".PadRight(ARG_WIDTH));
+          i += totalLength;
+          totalLength = Console.WindowWidth - ARG_WIDTH;
+        }
+
+        if (comment.Length - i == totalLength)
+          Console.Write(comment.Substring(i));
+        else
+          Console.WriteLine(comment.Substring(i));
       }
     }
 

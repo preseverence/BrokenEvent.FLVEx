@@ -3,7 +3,7 @@ FLV video file fixer/metadata injector.
 
 ## Features
 
-* Packet timestamps fix. Tthis will fix length for semibroken video streams.
+* Packet timestamps fix. This will fix length for semibroken video streams.
 * Packet filtering. Will filter all packets, which aren't supported by videoplayers from videostream. Remain packets will be:
   * AMFMetadata
   * VideoPayload
@@ -27,5 +27,5 @@ outFile          Output filename. Will overwrite input file if omitted. Optional
 -fix             Fixes video timestamps. This will fix video duration for broken files. Optional.
 -fixMeta, -meta  Fixes/adds metadata to the file. Optional.
 -noMeta          Removes metadata from file. Not compatible with fixMeta. Optional.
--preserve        Preserved last file changes date of the file. Optional.
+-preserve        Preserves last file changes date of the file. Optional.
 ```
