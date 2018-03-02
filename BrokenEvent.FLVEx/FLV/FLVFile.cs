@@ -220,6 +220,10 @@ namespace BrokenEvent.FLVEx.FLV
 
       Header.Write(ds);
       uint prevPacketSize = 0;
+
+      if (Metadata != null)
+        Metadata.Variables["filesize"] = (double)0;
+
       foreach (BasePacket packet in Packets)
       {
         packet.PrevPacketSize = prevPacketSize;
@@ -229,7 +233,7 @@ namespace BrokenEvent.FLVEx.FLV
 
       if (Metadata != null)
       {
-        Metadata.Variables.Remove("filesize");
+        Metadata.Variables["filesize"] = (double)stream.Position;
         Metadata.PostWrite(ds);
       }
     }

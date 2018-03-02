@@ -136,7 +136,14 @@ namespace BrokenEvent.FLVEx.FLV.Packets
 
     internal MetadataPacket(DataStream stream, uint prevPacketSize, PacketType type): base(stream, prevPacketSize, type)
     {
+      long position = stream.Position;
       ReadVars(stream, Variables);
+
+      if (stream.Position < position + PayloadSize)
+        stream.Position = position + PayloadSize;
+
+      if (stream.Position != position + PayloadSize)
+        throw new Exception("Position mismatch detected. Metadata read wrong.");
     }
 
     protected override void WriteData(DataStream dest)
