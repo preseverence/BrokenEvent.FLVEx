@@ -4,7 +4,7 @@ using BrokenEvent.Shared.Algorithms;
 
 namespace ConsoleApp8.FLV
 {
-  class FLVHeader
+  public class FLVHeader
   {
     public const int HEADER_SIZE = 9;
 

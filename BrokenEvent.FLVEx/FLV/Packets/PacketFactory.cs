@@ -2,7 +2,7 @@
 
 namespace BrokenEvent.FLVEx.FLV.Packets
 {
-  static class PacketFactory
+  internal static class PacketFactory
   {
     public static BasePacket ReadPacket(DataStream stream)
     {

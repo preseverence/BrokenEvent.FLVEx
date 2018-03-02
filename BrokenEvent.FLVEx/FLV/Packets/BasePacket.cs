@@ -5,7 +5,7 @@ using BrokenEvent.Shared.Algorithms;
 
 namespace BrokenEvent.FLVEx.FLV.Packets
 {
-  class BasePacket
+  public class BasePacket
   {
     public const int PACKET_HEADER_SIZE = 15;
     public const int PREV_PACKET_SIZE_OFFSET = 11;
@@ -71,7 +71,7 @@ namespace BrokenEvent.FLVEx.FLV.Packets
     }    
   }
 
-  enum PacketType: byte
+  public enum PacketType: byte
   {
     RTMPReadReport = 4,
     RTMPPing,

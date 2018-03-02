@@ -3,7 +3,7 @@ using BrokenEvent.Shared.Algorithms;
 
 namespace BrokenEvent.FLVEx.FLV.Packets
 {
-  class VideoPacket: StreamCopyPacket
+  public class VideoPacket: StreamCopyPacket
   {
     public VideoFrameType FrameType { get; }
     public VideoCodecId CodecId { get; }
@@ -40,7 +40,7 @@ namespace BrokenEvent.FLVEx.FLV.Packets
     }
   }
 
-  enum VideoFrameType: byte
+  public enum VideoFrameType: byte
   {
     KeyFrame = 1,
     Interframe = 2,
@@ -49,7 +49,7 @@ namespace BrokenEvent.FLVEx.FLV.Packets
     InfoFrame = 5,
   }
 
-  enum VideoCodecId: byte
+  public enum VideoCodecId: byte
   {
     JPEG = 1,
     SorensonH263,

@@ -5,7 +5,7 @@ using BrokenEvent.Shared.Algorithms;
 
 namespace BrokenEvent.FLVEx.FLV.Packets
 {
-  class StreamCopyPacket : BasePacket
+  public class StreamCopyPacket : BasePacket
   {
     internal StreamCopyPacket(DataStream stream, uint prevPacketSize, PacketType type): base(stream, prevPacketSize, type) { }
 

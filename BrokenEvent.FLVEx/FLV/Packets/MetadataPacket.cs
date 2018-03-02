@@ -6,7 +6,7 @@ using BrokenEvent.Shared.Algorithms;
 
 namespace BrokenEvent.FLVEx.FLV.Packets
 {
-  class MetadataPacket: RewritablePacket
+  public class MetadataPacket: RewritablePacket
   {
     public Dictionary<string, object> Variables { get; } = new Dictionary<string, object>();
     private const string MARKER = "onMetaData";

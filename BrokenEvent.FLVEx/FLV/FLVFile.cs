@@ -10,7 +10,7 @@ using ConsoleApp8.FLV;
 
 namespace BrokenEvent.FLVEx.FLV
 {
-  class FLVFile: IDisposable
+  public class FLVFile: IDisposable
   {
     public FLVHeader Header { get; }
     public List<BasePacket> Packets { get; } = new List<BasePacket>();

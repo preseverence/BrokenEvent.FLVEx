@@ -5,7 +5,7 @@ using BrokenEvent.Shared.Algorithms;
 
 namespace BrokenEvent.FLVEx.FLV.Packets
 {
-  class RewritablePacket: BasePacket
+  public class RewritablePacket: BasePacket
   {
     internal RewritablePacket(DataStream stream, uint prevPacketSize, PacketType type): base(stream, prevPacketSize, type) { }
 

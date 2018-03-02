@@ -4,7 +4,7 @@ using BrokenEvent.Shared.Algorithms;
 
 namespace BrokenEvent.FLVEx.FLV.Packets
 {
-  class AudioPacket: StreamCopyPacket
+  public class AudioPacket: StreamCopyPacket
   {
     public SoundFormat SoundFormat { get; }
     public SoundRate SoundRate { get; }
@@ -69,7 +69,7 @@ namespace BrokenEvent.FLVEx.FLV.Packets
     }
   }
 
-  enum SoundFormat
+  public enum SoundFormat
   {
     LinearPCM_Platform,
     ADPCM,
@@ -87,7 +87,7 @@ namespace BrokenEvent.FLVEx.FLV.Packets
     DeviceSpecific
   }
 
-  enum SoundRate
+  public enum SoundRate
   {
     /// <summary>
     /// 5.5kHz
@@ -107,13 +107,13 @@ namespace BrokenEvent.FLVEx.FLV.Packets
     kHz44,
   }
 
-  enum SoundSize
+  public enum SoundSize
   {
     Bit8,
     Bit16,
   }
 
-  enum SoundType
+  public enum SoundType
   {
     Mono,
     Stereo,
