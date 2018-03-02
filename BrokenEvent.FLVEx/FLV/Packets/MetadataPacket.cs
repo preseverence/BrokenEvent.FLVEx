@@ -35,9 +35,20 @@ namespace BrokenEvent.FLVEx.FLV.Packets
       if (ReadASString(stream) != MARKER)
         throw new InvalidOperationException("Invalid metadata marker");
 
-      stream.Position += 1; // skip type mark (mixed array)
-      int maxArrayIndex = stream.ReadInt(); // max index aka count
-
+      // global object type
+      KnownTypes type = (KnownTypes)stream.ReadByte();
+      int maxArrayIndex = 0;
+      switch (type)
+      {
+        case KnownTypes.MixedArray:
+          maxArrayIndex = stream.ReadInt(); // max index aka count
+          break;
+        case KnownTypes.Object:
+          break; // do nothing here
+        default:
+          throw new InvalidOperationException("Invalid or unsupported root object data type: " + type);
+      }
+      
       // fix for case of invalid max index/count
       if (maxArrayIndex == 0)
         maxArrayIndex = int.MaxValue;
@@ -46,7 +57,7 @@ namespace BrokenEvent.FLVEx.FLV.Packets
       {
         string name = ReadASString(stream);
 
-        KnownTypes type = (KnownTypes)stream.ReadByte();
+        type = (KnownTypes)stream.ReadByte();
         switch (type)
         {
           case KnownTypes.Double:
