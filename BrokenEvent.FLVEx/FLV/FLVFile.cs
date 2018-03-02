@@ -34,10 +34,22 @@ namespace BrokenEvent.FLVEx.FLV
       {
         BasePacket packet = PacketFactory.ReadPacket(ds);
 
+        if (packet.PacketType == 0 && packet.PayloadSize == 0)
+        {
+          if (stream.Position < stream.Length)
+            Console.WriteLine("Zero data detected at {0}. Integrity is unrecoverable. Dropping the rest of stream ({1} bytes remains).", stream.Position, stream.Length - stream.Position);
+
+          break;
+        }
+
         if (packet is MetadataPacket metadataPacket)
         {
           if (Metadata != null)
-            throw new InvalidOperationException("Duplicate metadata not allowed");
+          {
+            Console.WriteLine("Discarding duplicate metadata packet at: {0}", metadataPacket.Offset);
+            continue;
+          }
+
           Metadata = metadataPacket;
         }
 
