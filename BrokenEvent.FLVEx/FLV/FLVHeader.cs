@@ -10,7 +10,7 @@ namespace ConsoleApp8.FLV
 
     public byte Version { get; }
 
-    public FLVFlags Flags { get; }
+    public FLVFlags Flags { get; set; }
 
     public FLVHeader(DataStream stream)
     {

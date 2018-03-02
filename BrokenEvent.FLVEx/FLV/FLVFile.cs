@@ -146,23 +146,41 @@ namespace BrokenEvent.FLVEx.FLV
 
       // first audio/video packets
       VideoPacket videoPacket = (VideoPacket)Packets.First(e => e.PacketType == PacketType.VideoPayload);
-      AudioPacket audioPacket = (AudioPacket)Packets.First(e => e.PacketType == PacketType.AudioPayload);
+      AudioPacket audioPacket = (AudioPacket)Packets.FirstOrDefault(e => e.PacketType == PacketType.AudioPayload);
 
-      // update audio data
-      Metadata.Variables["audiosamplerate"] = audioPacket.GetSampleRate();
-      Metadata.Variables["audiosamplesize"] = audioPacket.GetSoundSize();
-      Metadata.Variables["stereo"] = audioPacket.GetStereo();
-      Metadata.Variables["audiocodecid"] = audioPacket.GetSoundFormat();
-      Metadata.Variables["audiodelay"] = videoPacket.TimeStamp.TotalSeconds;
-      Metadata.Variables["audiosize"] = (double)AudioDataBytes;
-      if (Verbose)
-        Console.WriteLine(
-          "  Audio: {0} Hz {1} bits {2} Codec: {3} Delay {4} sec",
-          audioPacket.GetSampleRate(),
-          audioPacket.GetSoundSize(),
-          audioPacket.GetStereo() ? "stereo" : "mono",
-          audioPacket.SoundFormat,
-          videoPacket.TimeStamp.TotalSeconds);
+      if (audioPacket == null)
+      {
+        Header.Flags &= ~FLVFlags.Audio;
+
+        Metadata.Variables.Remove("audiosamplerate");
+        Metadata.Variables.Remove("audiosamplesize");
+        Metadata.Variables.Remove("stereo");
+        Metadata.Variables.Remove("audiocodecid");
+        Metadata.Variables.Remove("audiodelay");
+        Metadata.Variables.Remove("audiosize");
+
+        if (Verbose)
+          Console.WriteLine("  Audio: no");
+      }
+      else
+      { 
+        // update audio data
+        Metadata.Variables["audiosamplerate"] = audioPacket.GetSampleRate();
+        Metadata.Variables["audiosamplesize"] = audioPacket.GetSoundSize();
+        Metadata.Variables["stereo"] = audioPacket.GetStereo();
+        Metadata.Variables["audiocodecid"] = audioPacket.GetSoundFormat();
+        Metadata.Variables["audiodelay"] = videoPacket.TimeStamp.TotalSeconds;
+        Metadata.Variables["audiosize"] = (double)AudioDataBytes;
+        if (Verbose)
+          Console.WriteLine(
+              "  Audio: {0} Hz {1} bits {2} Codec: {3} Delay {4} sec",
+              audioPacket.GetSampleRate(),
+              audioPacket.GetSoundSize(),
+              audioPacket.GetStereo() ? "stereo" : "mono",
+              audioPacket.SoundFormat,
+              videoPacket.TimeStamp.TotalSeconds
+            );
+      }
 
       // update video data
       Metadata.Variables["videosize"] = (double)VideoDataBytes;
