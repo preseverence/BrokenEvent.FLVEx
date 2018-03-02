@@ -82,7 +82,8 @@ namespace BrokenEvent.FLVEx.FLV
           i++;
       }
 
-      Console.WriteLine("Packets filtering done. Removed: {0} packets", count);
+      if (Verbose)
+        Console.WriteLine("Packets filtering done. Removed: {0} packets", count);
     }
 
     public void FixTimeStamps()
@@ -96,7 +97,8 @@ namespace BrokenEvent.FLVEx.FLV
             delta = packet.TimeStamp;
         }
 
-      Console.WriteLine("Found initial time delta: " + delta);
+      if (Verbose)
+        Console.WriteLine("Found initial time delta: " + delta);
 
       foreach (BasePacket packet in Packets)
         if (packet.TimeStamp.TotalSeconds > 0)
@@ -107,7 +109,8 @@ namespace BrokenEvent.FLVEx.FLV
     {
       if (Metadata == null)
       {
-        Console.WriteLine("No metadata packet found. Creating new.");
+        if (Verbose)
+          Console.WriteLine("No metadata packet found. Creating new.");
         Metadata = new MetadataPacket(FLVHeader.HEADER_SIZE);
         Packets.Insert(0, Metadata);
       }
@@ -129,10 +132,17 @@ namespace BrokenEvent.FLVEx.FLV
       // update seeking fields
       Metadata.Variables["duration"] = maxTimeStamp.TotalSeconds;
       Metadata.Variables["lasttimestamp"] = maxTimeStamp.TotalSeconds;
-      Metadata.Variables["lastkeyframetimestamp"] = Packets
-        .Where(e => e.PacketType == PacketType.VideoPayload && ((VideoPacket)e).FrameType == VideoFrameType.KeyFrame)
-        .Max(e => e.TimeStamp).TotalSeconds;
-      Console.WriteLine("  Video duration: {0} seconds", maxTimeStamp.TotalSeconds);
+
+      // update last key frame, if possible
+      List<BasePacket> keyFramePackets = new List<BasePacket>(
+          Packets
+            .Where(e => e.PacketType == PacketType.VideoPayload && ((VideoPacket)e).FrameType == VideoFrameType.KeyFrame)
+        );
+      if (keyFramePackets.Count > 0)
+        Metadata.Variables["lastkeyframetimestamp"] = keyFramePackets.Max(e => e.TimeStamp).TotalSeconds;
+
+      if (Verbose)
+        Console.WriteLine("  Video duration: {0} seconds", maxTimeStamp.TotalSeconds);
 
       // first audio/video packets
       VideoPacket videoPacket = (VideoPacket)Packets.First(e => e.PacketType == PacketType.VideoPayload);
@@ -145,26 +155,28 @@ namespace BrokenEvent.FLVEx.FLV
       Metadata.Variables["audiocodecid"] = audioPacket.GetSoundFormat();
       Metadata.Variables["audiodelay"] = videoPacket.TimeStamp.TotalSeconds;
       Metadata.Variables["audiosize"] = (double)AudioDataBytes;
-      Console.WriteLine(
+      if (Verbose)
+        Console.WriteLine(
           "  Audio: {0} Hz {1} bits {2} Codec: {3} Delay {4} sec",
           audioPacket.GetSampleRate(),
           audioPacket.GetSoundSize(),
           audioPacket.GetStereo() ? "stereo" : "mono",
           audioPacket.SoundFormat,
-          videoPacket.TimeStamp.TotalSeconds)
-        ;
+          videoPacket.TimeStamp.TotalSeconds);
 
       // update video data
       Metadata.Variables["videosize"] = (double)VideoDataBytes;
       Metadata.Variables["videocodecid"] = videoPacket.GetCodecId();
-      Console.WriteLine("  Video codec: {0}", videoPacket.CodecId);
+      if (Verbose)
+        Console.WriteLine("  Video codec: {0}", videoPacket.CodecId);
 
       videoPacket = (VideoPacket)Packets.FirstOrDefault(e => e.PacketType == PacketType.VideoPayload && ((VideoPacket)e).Width > 0 && ((VideoPacket)e).Height > 0);
       if (videoPacket != null)
       {
         Metadata.Variables["width"] = (double)videoPacket.Width;
         Metadata.Variables["height"] = (double)videoPacket.Height;
-        Console.WriteLine("  Video dimensions: {0}x{1}", videoPacket.Width, videoPacket.Height);
+        if (Verbose)
+          Console.WriteLine("  Video dimensions: {0}x{1}", videoPacket.Width, videoPacket.Height);
       }
     }
 
@@ -203,6 +215,8 @@ namespace BrokenEvent.FLVEx.FLV
         Metadata.PostWrite(ds);
       }
     }
+
+    public bool Verbose { get; set; } = true;
 
     public void Dispose()
     {

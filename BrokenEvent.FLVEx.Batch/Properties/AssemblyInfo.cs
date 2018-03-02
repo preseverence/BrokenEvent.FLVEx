@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("BrokenEvent.FLVEx")]
+[assembly: AssemblyTitle("BrokenEvent.FLVEx.Batch")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Broken Event")]
-[assembly: AssemblyProduct("BrokenEvent.FLVEx")]
+[assembly: AssemblyProduct("BrokenEvent.FLVEx.Batch")]
 [assembly: AssemblyCopyright("© 2018 Broken Event. All rights reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("17c2c0ed-f3ca-458d-ab13-aa29042da426")]
+[assembly: Guid("0a0f6304-0d25-454d-a524-4bba97495420")]
 
 // Version information for an assembly consists of the following four values:
 //

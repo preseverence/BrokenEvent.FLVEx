@@ -38,6 +38,10 @@ namespace BrokenEvent.FLVEx.FLV.Packets
       stream.Position += 1; // skip type mark (mixed array)
       int maxArrayIndex = stream.ReadInt(); // max index aka count
 
+      // fix for case of invalid max index/count
+      if (maxArrayIndex == 0)
+        maxArrayIndex = int.MaxValue;
+
       for (int i = 0; i < maxArrayIndex; i++)
       {
         string name = ReadASString(stream);
@@ -67,6 +71,10 @@ namespace BrokenEvent.FLVEx.FLV.Packets
           case KnownTypes.Unsupported:
             vars.Add(name, type);
             break;
+
+          // this is used when maximum items count is unknown
+          case KnownTypes.ObjectEnd:
+            return;
 
           default:
             throw new InvalidOperationException("Invalid or unsupported data type: " + type);
