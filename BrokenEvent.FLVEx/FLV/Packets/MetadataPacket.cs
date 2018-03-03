@@ -1,154 +1,63 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
+using BrokenEvent.FLVEx.Utils;
 using BrokenEvent.Shared.Algorithms;
 
 namespace BrokenEvent.FLVEx.FLV.Packets
 {
   public class MetadataPacket: RewritablePacket
   {
-    public Dictionary<string, object> Variables { get; } = new Dictionary<string, object>();
+    private readonly Dictionary<string, object> variables;
+
+    public Dictionary<string, object> Variables
+    {
+      get { return variables; }
+    }
+
     private const string MARKER = "onMetaData";
 
-    private static string ReadASString(DataStream stream)
+    internal static void ReadVars(DataStream stream, ref Dictionary<string, object> vars)
     {
-      ushort length = stream.ReadUShort();
-      if (length == 0)
-        return null;
+      stream.Position += 1; // skip type mark
 
-      byte[] buffer = stream.ReadBytes(length);
-      return Encoding.ASCII.GetString(buffer);
-    }
-
-    private static void WriteASString(DataStream stream, string value)
-    {
-      byte[] data = Encoding.ASCII.GetBytes(value);
-      stream.Write((ushort)data.Length);
-      stream.Stream.Write(data, 0, data.Length);
-    }
-
-    internal static void ReadVars(DataStream stream, Dictionary<string, object> vars)
-    {
-      stream.Position += 1; // skip type mark (string)
-
-      if (ReadASString(stream) != MARKER)
+      if (ActionScript.ReadString(stream) != MARKER)
         throw new InvalidOperationException("Invalid metadata marker");
 
       // global object type
       KnownTypes type = (KnownTypes)stream.ReadByte();
-      int maxArrayIndex = 0;
+
       switch (type)
       {
         case KnownTypes.MixedArray:
-          maxArrayIndex = stream.ReadInt(); // max index aka count
+          vars = ActionScript.ReadMixedArray(stream);
           break;
+
         case KnownTypes.Object:
-          break; // do nothing here
+          vars = ActionScript.ReadObject(stream);
+          break;
+
         default:
           throw new InvalidOperationException("Invalid or unsupported root object data type: " + type);
-      }
-      
-      // fix for case of invalid max index/count
-      if (maxArrayIndex == 0)
-        maxArrayIndex = int.MaxValue;
-
-      for (int i = 0; i < maxArrayIndex; i++)
-      {
-        string name = ReadASString(stream);
-
-        type = (KnownTypes)stream.ReadByte();
-        switch (type)
-        {
-          case KnownTypes.Double:
-            vars.Add(name, stream.ReadDouble());
-            break;
-
-          case KnownTypes.Bool:
-            vars.Add(name, stream.ReadBool());
-            break;
-
-          case KnownTypes.String:
-            vars.Add(name, ReadASString(stream));
-            break;
-
-          case KnownTypes.Date:
-            byte[] b = stream.ReadBytes(10);
-            vars.Add(name, b);
-            break;
-
-          case KnownTypes.Null:
-          case KnownTypes.Undefined:
-          case KnownTypes.Unsupported:
-            vars.Add(name, type);
-            break;
-
-          // this is used when maximum items count is unknown
-          case KnownTypes.ObjectEnd:
-            return;
-
-          default:
-            throw new InvalidOperationException("Invalid or unsupported data type: " + type);
-        }
-      }
-
-      // skip "" and ObjectEnd marker
-      stream.Position += 3;
+      }      
     }
 
     internal static void WriteVars(DataStream stream, Dictionary<string, object> vars)
     {
       stream.Write((byte)KnownTypes.String);
-      WriteASString(stream, MARKER);
-      stream.Write((byte)KnownTypes.MixedArray);
-      stream.Write(vars.Count); // count
 
-      foreach (KeyValuePair<string, object> v in vars)
-      {
-        WriteASString(stream, v.Key);
-
-        switch (v.Value) {
-          case double d:
-            stream.Write((byte)KnownTypes.Double);
-            stream.Write(d);
-            break;
-
-          case bool b:
-            stream.Write((byte)KnownTypes.Bool);
-            stream.Write(b);
-            break;
-
-          case string s:
-            stream.Write((byte)KnownTypes.String);
-            WriteASString(stream, s);
-            break;
-
-          case byte[] ba:
-            stream.Write((byte)KnownTypes.Date);
-            stream.Stream.Write(ba, 0, ba.Length);
-            break;
-
-          case KnownTypes t:
-            stream.Write((byte)t);
-            break;
-          default:
-            throw new InvalidOperationException("Unsupported type: " + v.Value.GetType().Name);
-        }
-      }
-
-      // write ""
-      stream.Write((ushort)0);
-      stream.Write((byte)KnownTypes.ObjectEnd);
+      ActionScript.WriteVariable(stream, MARKER, vars);      
     }
 
     internal MetadataPacket(long offset): base(PacketType.AMFMetadata, TimeSpan.Zero, offset)
     {
+      variables = new Dictionary<string, object>();
     }
 
     internal MetadataPacket(DataStream stream, uint prevPacketSize, PacketType type): base(stream, prevPacketSize, type)
     {
       long position = stream.Position;
-      ReadVars(stream, Variables);
+      ReadVars(stream, ref variables);
 
       if (stream.Position < position + PayloadSize)
         stream.Position = position + PayloadSize;
@@ -167,23 +76,6 @@ namespace BrokenEvent.FLVEx.FLV.Packets
     {
       dest.Position = Offset;
       WriteVars(dest, Variables);
-    }
-
-    public enum KnownTypes: byte
-    {
-      Double = 0,
-      Bool = 1,
-      String = 2,
-      Object = 3,
-      Null = 5,
-      Undefined = 6,
-      Reference = 7,
-      MixedArray = 8,
-      ObjectEnd = 9,
-      Array = 10,
-      Date = 11,
-      LongString = 12,
-      Unsupported = 13,
     }
   }
 }

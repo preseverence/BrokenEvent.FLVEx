@@ -20,6 +20,7 @@
     <DefineConstants>TRACE;DEBUG;SHARED_PUBLIC_API</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -29,6 +30,7 @@
     <DefineConstants>TRACE;SHARED_PUBLIC_API</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -59,6 +61,7 @@
     <Compile Include="Shared\DataStream.cs" />
     <Compile Include="Shared\DataStream.Read.cs" />
     <Compile Include="Shared\DataStream.Write.cs" />
+    <Compile Include="Utils\ActionScript.cs" />
     <Compile Include="Utils\AVC.cs" />
     <Compile Include="Utils\BitReader.cs" />
   </ItemGroup>
