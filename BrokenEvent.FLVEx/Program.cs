@@ -62,7 +62,7 @@ namespace BrokenEvent.FLVEx
       }
 
       string outputFile = model.OutputFile ?? model.InputFile;
-      Console.WriteLine("Writing: {0}" + outputFile);
+      Console.WriteLine("Writing: {0}", outputFile);
       file.Write(outputFile);
 
       inputStream.Dispose();

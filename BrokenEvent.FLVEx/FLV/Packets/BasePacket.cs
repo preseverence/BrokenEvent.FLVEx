@@ -10,15 +10,15 @@ namespace BrokenEvent.FLVEx.FLV.Packets
     public const int PACKET_HEADER_SIZE = 15;
     public const int PREV_PACKET_SIZE_OFFSET = 11;
 
-    public long Offset { get; private set; }
+    public readonly long Offset;
 
-    public uint PrevPacketSize { get; set; }
+    public uint PrevPacketSize;
 
-    public PacketType PacketType { get; }
+    public readonly PacketType PacketType;
 
     public uint PayloadSize { get; protected set; }
 
-    public TimeSpan TimeStamp { get; set; }
+    public TimeSpan TimeStamp;
 
     protected BasePacket(PacketType packetType, TimeSpan timeStamp, long offset)
     {
@@ -41,7 +41,7 @@ namespace BrokenEvent.FLVEx.FLV.Packets
       TimeStamp = TimeSpan.FromMilliseconds(timeStamp);
 
       // skip Stream position as it is always 0
-      stream.Position += 3;
+      stream.Stream.Seek(3, SeekOrigin.Current);
 
       Offset = stream.Position;
     }

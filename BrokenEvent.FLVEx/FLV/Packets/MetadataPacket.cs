@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 using BrokenEvent.FLVEx.Utils;
 using BrokenEvent.Shared.Algorithms;
@@ -19,7 +20,7 @@ namespace BrokenEvent.FLVEx.FLV.Packets
 
     internal static void ReadVars(DataStream stream, ref Dictionary<string, object> vars)
     {
-      stream.Position += 1; // skip type mark
+      stream.Stream.Seek(1, SeekOrigin.Current); // skip type mark
 
       if (ActionScript.ReadString(stream) != MARKER)
         throw new InvalidOperationException("Invalid metadata marker");

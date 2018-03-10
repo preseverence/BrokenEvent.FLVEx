@@ -146,12 +146,10 @@ namespace BrokenEvent.FLVEx.FLV
       Metadata.Variables["lasttimestamp"] = maxTimeStamp.TotalSeconds;
 
       // update last key frame, if possible
-      List<BasePacket> keyFramePackets = new List<BasePacket>(
-          Packets
-            .Where(e => e.PacketType == PacketType.VideoPayload && ((VideoPacket)e).FrameType == VideoFrameType.KeyFrame)
-        );
-      if (keyFramePackets.Count > 0)
-        Metadata.Variables["lastkeyframetimestamp"] = keyFramePackets.Max(e => e.TimeStamp).TotalSeconds;
+      BasePacket lastKeyFrame = Packets.LastOrDefault(e => e.PacketType == PacketType.VideoPayload && ((VideoPacket)e).FrameType == VideoFrameType.KeyFrame);
+
+      if (lastKeyFrame != null)
+        Metadata.Variables["lastkeyframetimestamp"] = lastKeyFrame.TimeStamp.TotalSeconds;
 
       if (Verbose)
         Console.WriteLine("  Video duration: {0} seconds", maxTimeStamp.TotalSeconds);

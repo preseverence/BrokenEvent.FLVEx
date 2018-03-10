@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 using BrokenEvent.Shared.Algorithms;
@@ -83,7 +84,7 @@ namespace BrokenEvent.FLVEx.Utils
     public static Dictionary<string, object> ReadMixedArray(DataStream stream)
     {
       // skip max index/count
-      stream.Position += 4;
+      stream.Stream.Seek(4, SeekOrigin.Current);
 
       Dictionary<string, object> result = new Dictionary<string, object>();
 
