@@ -34,9 +34,9 @@ namespace BrokenEvent.Shared.Algorithms
       { typeof(uint), (t, value) => uint.Parse(value) },
     };
 
-    private List<PropertyDescriptor> descs = new List<PropertyDescriptor>();
-    private List<PropertyDescriptor> unnamedDescs = new List<PropertyDescriptor>();
-    private List<PropertyDescriptor> allDescs = new List<PropertyDescriptor>();
+    private List<CommandDescriptor> descs = new List<CommandDescriptor>();
+    private List<CommandDescriptor> unnamedDescs = new List<CommandDescriptor>();
+    private List<CommandDescriptor> allDescs = new List<CommandDescriptor>();
     private CommandModelAttribute modelAttribute;
     private TModel model;
     private StringComparer stringComparer = StringComparer.InvariantCultureIgnoreCase;
@@ -45,35 +45,51 @@ namespace BrokenEvent.Shared.Algorithms
     private bool writeUsageOnError;
     private string error;
 
-    private class PropertyDescriptor
+    private class CommandDescriptor
     {
       public readonly CommandAttribute Attribute;
-      private readonly PropertyInfo Property;
-      private bool isSet;
-      private readonly TModel model;
-      private readonly Func<Type, string, object> valueParser;
+      
+      protected bool isSet;
+      protected readonly TModel model;
+      protected readonly PropertyInfo Property;
 
-      public PropertyDescriptor(CommandAttribute attribute, PropertyInfo property, CommandLineParser<TModel> parser)
+      protected CommandDescriptor(CommandAttribute attribute, PropertyInfo property, CommandLineParser<TModel> parser)
       {
         Attribute = attribute;
         Property = property;
         model = parser.model;
-
-        if (!attribute.IsFlag)
-        {
-          if (Property.PropertyType.IsEnum)
-            valueParser = Enum.Parse;
-          else if (!parser.parsers.TryGetValue(Property.PropertyType, out valueParser))
-            throw new InvalidOperationException("Not supported property type: " + Property.PropertyType.Name);
-        }
       }
 
-      public void SetFlagValue(bool value)
+      public virtual void SetFlagValue(bool value)
       {
-        Property.SetValue(model, value);
+        throw new NotSupportedException();
+      }
+      
+      public virtual string SetValue(string value)
+      {
+        throw new NotSupportedException();
       }
 
-      public string SetValue(string value)
+      public bool IsRequiredSet
+      {
+        get { return isSet || !Attribute.IsRequired; }
+      }
+    }
+
+    private class PropertyDescriptor: CommandDescriptor
+    {
+      private readonly Func<Type, string, object> valueParser;
+
+      public PropertyDescriptor(CommandAttribute attribute, PropertyInfo property, CommandLineParser<TModel> parser)
+        : base(attribute, property, parser)
+      {
+        if (property.PropertyType.IsEnum)
+          valueParser = Enum.Parse;
+        else if (!parser.parsers.TryGetValue(property.PropertyType, out valueParser))
+          throw new InvalidOperationException($"Not supported property type: {property.PropertyType}");
+      }
+
+      public override string SetValue(string value)
       {
         try
         {
@@ -87,10 +103,57 @@ namespace BrokenEvent.Shared.Algorithms
 
         return null;
       }
+    }
 
-      public bool IsRequiredSet
+    private class ListDescriptor: CommandDescriptor
+    {
+      private readonly object listObject;
+      private readonly MethodInfo listAddMethod;
+      private readonly Func<Type, string, object> valueParser;
+
+      public ListDescriptor(CommandAttribute attribute, PropertyInfo property, CommandLineParser<TModel> parser)
+        : base(attribute, property, parser)
       {
-        get { return isSet || !Attribute.IsRequired; }
+        Type type = property.PropertyType.GetGenericArguments()[0];
+
+        // get list itself
+        listObject = property.GetValue(model);
+        if (listObject == null)
+          throw new ArgumentNullException(null, $"{property.Name} should be initialized.");
+        listAddMethod = property.PropertyType.GetMethod("Add");
+
+        // get parser
+        if (type.IsEnum)
+          valueParser = Enum.Parse;
+        else if (!parser.parsers.TryGetValue(type, out valueParser))
+          throw new InvalidOperationException($"Not supported property type: {type}");
+      }
+
+      public override string SetValue(string value)
+      {
+        try
+        {
+          if (listObject != null)
+            listAddMethod.Invoke(listObject, new[] { valueParser(Property.PropertyType, value) });
+
+          isSet = true;
+        }
+        catch (Exception e)
+        {
+          return e.Message;
+        }
+
+        return null;
+      }
+    }
+
+    private class FlagDescriptor: CommandDescriptor
+    {
+      public FlagDescriptor(CommandAttribute attribute, PropertyInfo property, CommandLineParser<TModel> parser): base(attribute, property, parser) { }
+
+      public override void SetFlagValue(bool value)
+      {
+        Property.SetValue(model, value);
       }
     }
 
@@ -106,7 +169,7 @@ namespace BrokenEvent.Shared.Algorithms
 
       Type modelType = typeof(TModel);
       modelAttribute = modelType.GetCustomAttribute<CommandModelAttribute>();
-      Dictionary<int, PropertyDescriptor> unnamedDict = new Dictionary<int, PropertyDescriptor>();
+      Dictionary<int, CommandDescriptor> unnamedDict = new Dictionary<int, CommandDescriptor>();
 
       PropertyInfo[] infos = modelType.GetProperties();
       foreach (PropertyInfo info in infos)
@@ -121,7 +184,35 @@ namespace BrokenEvent.Shared.Algorithms
         if (!info.CanWrite)
           throw new ArgumentException($"{info.Name} has no setter.");
 
-        PropertyDescriptor desc = new PropertyDescriptor(attr, info, this);
+        CommandDescriptor desc;
+
+        if (attr.IsFlag)
+          desc = new FlagDescriptor(attr, info, this);
+        else
+        {
+          if (info.PropertyType.IsGenericType)
+          {
+            Type[] ifaces = info.PropertyType.GetInterfaces();
+
+            bool iCollectionFound = false;
+            foreach (Type iface in ifaces)
+            {
+              if (iface.IsGenericType && iface.GetGenericTypeDefinition() == typeof(ICollection<>))
+              {
+                iCollectionFound = true;
+                break;
+              }
+            }
+
+            if (!iCollectionFound)
+              throw new ArgumentException($"Invalid field {info.Name}. Only ICollection<> implementations are allowed for generics.");
+
+            desc = new ListDescriptor(attr, info, this);
+          }
+          else
+            desc = new PropertyDescriptor(attr, info, this);
+        }
+          
         if (attr.Name == null)
           unnamedDict.Add(desc.Attribute.UnnamedIndex, desc);
         else
@@ -133,7 +224,7 @@ namespace BrokenEvent.Shared.Algorithms
       int lastRequiredIndex = -1;
       for (int i = 0; i < unnamedDict.Count; i++)
       {
-        PropertyDescriptor desc;
+        CommandDescriptor desc;
         if (!unnamedDict.TryGetValue(i, out desc))
           throw new ArgumentException($"Missing unnamed index {i}");
 
@@ -180,7 +271,7 @@ namespace BrokenEvent.Shared.Algorithms
             return false;
           }
       
-      PropertyDescriptor desc = null;
+      CommandDescriptor desc = null;
       int unnamedIndex = 0;
 
       for (int i = 0; i < args.Length; i++)
@@ -265,7 +356,7 @@ namespace BrokenEvent.Shared.Algorithms
       // validate
       for (int i = 0; i < allDescs.Count; i++)
       {
-        PropertyDescriptor d = allDescs[i];
+        CommandDescriptor d = allDescs[i];
 
         if (!d.IsRequiredSet)
         {
@@ -280,11 +371,11 @@ namespace BrokenEvent.Shared.Algorithms
       return true;
     }
 
-    private PropertyDescriptor FindDesc(string value)
+    private CommandDescriptor FindDesc(string value)
     {
       for (int i = 0; i < descs.Count; i++)
       {
-        PropertyDescriptor desc = descs[i];
+        CommandDescriptor desc = descs[i];
         if (stringComparer.Equals(desc.Attribute.Name, value))
           return desc;
 
@@ -313,7 +404,7 @@ namespace BrokenEvent.Shared.Algorithms
       else
         Console.Write(Path.GetFileName(assembly.Location));
 
-      foreach (PropertyDescriptor desc in allDescs)
+      foreach (CommandDescriptor desc in allDescs)
       {
         if (desc.Attribute.Name == null)
         {
@@ -337,7 +428,7 @@ namespace BrokenEvent.Shared.Algorithms
 
       Console.WriteLine("Arguments:");
 
-      foreach (PropertyDescriptor desc in allDescs)
+      foreach (CommandDescriptor desc in allDescs)
       {
         if (string.IsNullOrEmpty(desc.Attribute.Usage))
           continue;
@@ -363,7 +454,11 @@ namespace BrokenEvent.Shared.Algorithms
           name += " ";
         Console.Write(name);
         int i = 0;
-        int totalLength = Console.WindowWidth - name.Length;
+
+        int totalLength = int.MaxValue;
+        if (!Console.IsOutputRedirected)
+          totalLength = Console.WindowWidth - name.Length;
+
         while (comment.Length - i > totalLength)
         {
           Console.Write(comment.Substring(i, totalLength).PadLeft(ARG_WIDTH));
