@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 using BrokenEvent.FLVEx.FLV;
 using BrokenEvent.Shared.Algorithms;
@@ -8,6 +12,11 @@ namespace BrokenEvent.FLVEx.Batch
 {
   class Program
   {
+    private static CmdModel model;
+    private static int filesProcessed;
+    private static int filesTotal;
+    private static int cancelPending;
+
     public static string MakeRelativePath(string path, string rootPath)
     {
       if (!rootPath.EndsWith("\\"))
@@ -20,20 +29,20 @@ namespace BrokenEvent.FLVEx.Batch
       return Path.GetFullPath(Path.Combine(rootPath, path));
     }
 
-    private static bool ProcessFile(string filepath, CmdModel model)
+    private static bool ProcessFile(string filepath)
     {
       string relativePath = MakeRelativePath(filepath, model.InputDir);
 
       if (!(model.FilterPackets | model.FixMetadata | model.FixTimestamps | model.RemoveMetadata))
       {
-        Console.WriteLine("Skipping: {0}", relativePath);
+        Console.WriteLine("Skip: {0} ({1}/{2})", relativePath, filesProcessed, filesTotal);
         return true;
       }
 
       Stream inputStream;
-      if (model.OutputDir == null)
+      if (model.OutputDir == null || model.MemoryCache)
       {
-        Console.WriteLine("Processing (MEM): {0}", relativePath);
+        Console.WriteLine("MEM: {0} ({1}/{2})", relativePath, filesProcessed, filesTotal);
         inputStream = new MemoryStream();
         using (FileStream fs = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.Write))
           fs.CopyTo(inputStream);
@@ -41,7 +50,7 @@ namespace BrokenEvent.FLVEx.Batch
       }
       else
       {
-        Console.WriteLine("Processing (DUB): {0}", relativePath);
+        Console.WriteLine("DUB: {0} ({1}/{2})", relativePath, filesProcessed, filesTotal);
         inputStream = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.Write);
       }
 
@@ -82,12 +91,14 @@ namespace BrokenEvent.FLVEx.Batch
       if (model.PreserveDate)
         File.SetLastWriteTime(outputFile, fileDate);
 
+      GC.Collect();
+
       return true;
     }
 
     static int Main(string[] args)
     {
-      CmdModel model = new CmdModel();
+      model = new CmdModel();
       CommandLineParser<CmdModel> parser = new CommandLineParser<CmdModel>(model);
       parser.CaseSensitive = false;
       parser.AssignmentSyntax = true;
@@ -107,17 +118,63 @@ namespace BrokenEvent.FLVEx.Batch
         return 1;
       }
 
-      int count = 0;
+      Console.TreatControlCAsInput = true;
+      Console.CancelKeyPress += OnCancel;
+     
+      Stopwatch sw = Stopwatch.StartNew();
+      List<string> files = new List<string>(Directory.EnumerateFiles(model.InputDir, "*" + model.ExtFilter, model.SearchOption));
+      filesTotal = files.Count;
+      Console.WriteLine("Found {0} files.", files.Count);
 
-      foreach (string file in Directory.EnumerateFiles(model.InputDir, "*" + model.ExtFilter, model.SearchOption))
+      if (model.Parallel)
       {
-        if (!ProcessFile(file, model))
+        ParallelOptions options = new ParallelOptions();
+        options.MaxDegreeOfParallelism = Environment.ProcessorCount * 2;
+        ParallelLoopResult result = Parallel.ForEach(files, options, DoParallel);
+        if (!result.IsCompleted)
+        {
+          if (model.Wait)
+            Console.ReadLine();
           return 2;
-        count++;
+        }
       }
+      else
+        foreach (string file in files)
+        {
+          Interlocked.Add(ref filesProcessed, 1);
+          if (!ProcessFile(file) && !model.IgnoreErrors)
+          {
+            if (model.Wait)
+              Console.ReadLine();
+            return 2;
+          }
 
-      Console.WriteLine("Done: {0} files.", count);
+          if (cancelPending > 0)
+            break;
+        }
+
+      Console.WriteLine("Done in {0} seconds.", (long)sw.Elapsed.TotalSeconds);
+
+      if (model.Wait)
+        Console.ReadLine();
+
       return 0;
+    }
+
+    private static void OnCancel(object s, ConsoleCancelEventArgs a)
+    {
+      Console.WriteLine("Cancel requested. Batch will stop soon.");
+      Interlocked.Exchange(ref cancelPending, 1);
+    }
+
+    private static void DoParallel(string s, ParallelLoopState state)
+    {
+      Interlocked.Add(ref filesProcessed, 1);
+      if (!ProcessFile(s) && !model.IgnoreErrors)
+        state.Break();
+
+      if (cancelPending > 0)
+        state.Break();
     }
   }
 }
