@@ -77,6 +77,16 @@ namespace BrokenEvent.FLVEx.FLV
       get { return (uint)Packets.Where(e => e.PacketType == PacketType.AudioPayload).Sum(e => e.PayloadSize); }
     }
 
+    public TimeSpan Duration
+    {
+      get
+      {
+        TimeSpan start = Packets.Min(p => p.TimeStamp);
+        TimeSpan end = Packets.Min(p => p.TimeStamp);
+        return (end - start);
+      }
+    }
+
     public void FilterPackets()
     {
       int count = 0;
@@ -254,6 +264,107 @@ namespace BrokenEvent.FLVEx.FLV
     {
       sourceStream?.Dispose();
       sourceStream = null;
+    }
+
+    public void CutFromStart(TimeSpan start)
+    {
+      if (Verbose)
+        Console.WriteLine("Searching for keyframe nearest to {0}", (int)start.TotalSeconds);
+
+      int keyframeIndex = -1;
+      int headerIndex = -1;
+      for (int j = 0; j < Packets.Count; j++)
+      {
+        BasePacket packet = Packets[j];
+        if (packet.PacketType != PacketType.VideoPayload || ((VideoPacket)packet).FrameType != VideoFrameType.KeyFrame)
+          continue;
+
+        if (((VideoPacket)packet).IsHeader)
+          headerIndex = j;
+
+        if (packet.TimeStamp > start)
+          break;
+        keyframeIndex = j;
+      }
+
+      if (keyframeIndex == -1)
+      {
+        if (Verbose)
+          Console.WriteLine("Keyframe not found.");
+        return;
+      }
+
+      if (headerIndex == -1)
+      {
+        if (Verbose)
+          Console.WriteLine("Header keyframe not found.");
+        return;
+      }
+
+      if (Verbose)
+        Console.WriteLine("Keyframe found at #{0}, header keyframe found at #{1}", keyframeIndex, headerIndex);
+
+      int removed = 0;
+      int i = 0;
+      while (i < keyframeIndex)
+      {
+        BasePacket packet = Packets[i];
+
+        if ((packet.PacketType == PacketType.VideoPayload ||
+            packet.PacketType == PacketType.AudioPayload) && i != headerIndex)
+        {
+          // remove
+          Packets.RemoveAt(i);
+          // update removed counter
+          removed++;
+          // move end pointer
+          keyframeIndex--;
+        }
+        else
+          i++;
+      }
+
+      if (Verbose)
+        Console.WriteLine("Removed {0} packets", removed);
+    }
+
+    public void CutToEnd(TimeSpan end)
+    {
+      if (Verbose)
+        Console.WriteLine("Removing video and audio packets later than {0}", (int)end.TotalSeconds);
+
+      int i = 0;
+      int removed = 0;
+      while (i < Packets.Count)
+      {
+        BasePacket packet = Packets[i];
+
+        if ((packet.PacketType == PacketType.VideoPayload ||
+            packet.PacketType == PacketType.AudioPayload) &&
+            packet.TimeStamp > end)
+        {
+          Packets.RemoveAt(i);
+          removed++;
+        }
+        else
+          i++;
+      }
+
+      if (Verbose)
+        Console.WriteLine("Removed {0} packets", removed);
+    }
+
+    public void PrintReport()
+    {
+      Console.WriteLine("  Flags: {0}. Packets: {1}", Header.Flags, Packets.Count);
+      uint audioDataBytes = AudioDataBytes;
+      uint videoDataBytes = VideoDataBytes;
+      TimeSpan start = Packets.Min(p => p.TimeStamp);
+      TimeSpan end = Packets.Max(p => p.TimeStamp);
+
+      Console.WriteLine(" -- Audio: {0} bytes ({1:P1}) ({2} packets)", audioDataBytes, (float)audioDataBytes / Size, Packets.Count(p => p.PacketType == PacketType.AudioPayload));
+      Console.WriteLine(" -- Video: {0} bytes ({1:P1}) ({2} packets)", videoDataBytes, (float)videoDataBytes / Size, Packets.Count(p => p.PacketType == PacketType.VideoPayload));
+      Console.WriteLine(" -- Duration: {0} seconds (from {1} to {2})", (int)(end - start).TotalSeconds, (int)start.TotalSeconds, (int)end.TotalSeconds);
     }
   }
 }

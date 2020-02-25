@@ -25,5 +25,11 @@ namespace BrokenEvent.FLVEx
 
     [Command("preserve", "Preserves last file changes date of the file.", isFlag: true)]
     public bool PreserveDate { get; set; }
+
+    [Command("from", "Time of start of processed window, in seconds")]
+    public int? FromSeconds { get; set; }
+
+    [Command("to", "Time of end of processed window, in seconds")]
+    public int? ToSeconds { get; set; }
   }
 }

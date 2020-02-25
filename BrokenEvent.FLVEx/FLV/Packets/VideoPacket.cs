@@ -9,6 +9,7 @@ namespace BrokenEvent.FLVEx.FLV.Packets
     public VideoCodecId CodecId { get; }
     public int Width { get; }
     public int Height { get; }
+    public bool IsHeader { get; }
 
     public double GetCodecId()
     {
@@ -26,6 +27,7 @@ namespace BrokenEvent.FLVEx.FLV.Packets
         int w = 0, h = 0;
         if (AVC.Read(stream, ref w, ref h))
         {
+          IsHeader = true;
           Width = w;
           Height = h;
         }

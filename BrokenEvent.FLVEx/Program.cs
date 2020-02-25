@@ -42,10 +42,12 @@ namespace BrokenEvent.FLVEx
 
       FLVFile file = new FLVFile(inputStream);
 
-      Console.WriteLine("  Flags: {0}. Packets: {1}", file.Header.Flags, file.Packets.Count);
-      Console.WriteLine("  Audio: {0} bytes ({1:P1})", file.AudioDataBytes, (float)file.AudioDataBytes / file.Size);
-      Console.WriteLine("  Video: {0} bytes ({1:P1})", file.VideoDataBytes, (float)file.VideoDataBytes / file.Size);
+      file.PrintReport();
 
+      if (model.FromSeconds.HasValue)
+        file.CutFromStart(TimeSpan.FromSeconds(model.FromSeconds.Value));
+      if (model.ToSeconds.HasValue)
+        file.CutToEnd(TimeSpan.FromSeconds(model.ToSeconds.Value));
       if (model.FilterPackets)
         file.FilterPackets();
       if (model.FixTimestamps)
@@ -55,7 +57,8 @@ namespace BrokenEvent.FLVEx
       if (model.RemoveMetadata)
         file.RemoveMetadata();
 
-      if (!(model.FilterPackets | model.FixMetadata | model.FixTimestamps | model.RemoveMetadata))
+
+      if (!(model.FilterPackets || model.FixMetadata || model.FixTimestamps || model.RemoveMetadata || model.FromSeconds.HasValue || model.ToSeconds.HasValue))
       {
         Console.WriteLine("No actions set. Exiting.");
         return 0;

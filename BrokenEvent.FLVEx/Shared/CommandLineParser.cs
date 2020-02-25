@@ -105,6 +105,37 @@ namespace BrokenEvent.Shared.Algorithms
       }
     }
 
+    private class NullablePropertyDescriptor: CommandDescriptor
+    {
+      private readonly Func<Type, string, object> valueParser;
+      private readonly Type type;
+
+      public NullablePropertyDescriptor(CommandAttribute attribute, PropertyInfo property, CommandLineParser<TModel> parser)
+        : base(attribute, property, parser)
+      {
+        type = property.PropertyType.GenericTypeArguments[0];
+        if (type.IsEnum)
+          valueParser = Enum.Parse;
+        else if (!parser.parsers.TryGetValue(type, out valueParser))
+          throw new InvalidOperationException($"Not supported property type: {type}");
+      }
+
+      public override string SetValue(string value)
+      {
+        try
+        {
+          Property.SetValue(model, valueParser(type, value));
+          isSet = true;
+        }
+        catch (Exception e)
+        {
+          return e.Message;
+        }
+
+        return null;
+      }
+    }
+
     private class ListDescriptor: CommandDescriptor
     {
       private readonly object listObject;
@@ -192,22 +223,29 @@ namespace BrokenEvent.Shared.Algorithms
         {
           if (info.PropertyType.IsGenericType)
           {
-            Type[] ifaces = info.PropertyType.GetInterfaces();
-
-            bool iCollectionFound = false;
-            foreach (Type iface in ifaces)
+            if (info.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
             {
-              if (iface.IsGenericType && iface.GetGenericTypeDefinition() == typeof(ICollection<>))
-              {
-                iCollectionFound = true;
-                break;
-              }
+              desc = new NullablePropertyDescriptor(attr, info, this);
             }
+            else
+            {
+              Type[] ifaces = info.PropertyType.GetInterfaces();
 
-            if (!iCollectionFound)
-              throw new ArgumentException($"Invalid field {info.Name}. Only ICollection<> implementations are allowed for generics.");
+              bool iCollectionFound = false;
+              foreach (Type iface in ifaces)
+              {
+                if (iface.IsGenericType && iface.GetGenericTypeDefinition() == typeof(ICollection<>))
+                {
+                  iCollectionFound = true;
+                  break;
+                }
+              }
 
-            desc = new ListDescriptor(attr, info, this);
+              if (!iCollectionFound)
+                throw new ArgumentException($"Invalid field {info.Name}. Only ICollection<> implementations are allowed for generics.");
+
+              desc = new ListDescriptor(attr, info, this);
+            }
           }
           else
             desc = new PropertyDescriptor(attr, info, this);
