@@ -5,7 +5,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-using BrokenEvent.FLVEx.FLV;
+using BrokenEvent.LibFLVEx.FLV;
 using BrokenEvent.Shared.Algorithms;
 
 namespace BrokenEvent.FLVEx.Batch

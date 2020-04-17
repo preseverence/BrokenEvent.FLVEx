@@ -4,7 +4,7 @@ using BrokenEvent.Shared.Algorithms;
 
 namespace BrokenEvent.FLVEx.Batch
 {
-  [CommandModel("BrokenEvent.FLVEx Batch Processor, (c) 2018 BrokenEvent. All rights reserved.")]
+  [CommandModel("BrokenEvent.FLVEx Batch Processor, (c) 2018-2020 BrokenEvent. All rights reserved.")]
   class CmdModel
   {
     [Command(0, "Input search directory.", "inDir", isRequired: true)]

@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{FAFC8D5A-F811-4135-99A4-4A08A33C4ABF}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>BrokenEvent.LibFLVEx</RootNamespace>
+    <AssemblyName>BrokenEvent.LibFLVEx</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>false</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;SHARED_PUBLIC_API</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;SHARED_PUBLIC_API</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="FLV\FLVFile.cs" />
+    <Compile Include="FLV\FLVHeader.cs" />
+    <Compile Include="FLV\Packets\AudioPacket.cs" />
+    <Compile Include="FLV\Packets\BasePacket.cs" />
+    <Compile Include="FLV\Packets\MetadataPacket.cs" />
+    <Compile Include="FLV\Packets\PacketFactory.cs" />
+    <Compile Include="FLV\Packets\RewritablePacket.cs" />
+    <Compile Include="FLV\Packets\StreamCopyPacket.cs" />
+    <Compile Include="FLV\Packets\UnparsedPacket.cs" />
+    <Compile Include="FLV\Packets\VideoPacket.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Shared\ByteUtils.cs" />
+    <Compile Include="Shared\DataStream.cs" />
+    <Compile Include="Shared\DataStream.Read.cs" />
+    <Compile Include="Shared\DataStream.Write.cs" />
+    <Compile Include="Utils\ActionScript.cs" />
+    <Compile Include="Utils\AVC.cs" />
+    <Compile Include="Utils\BitReader.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

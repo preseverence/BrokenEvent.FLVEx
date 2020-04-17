@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Broken Event")]
 [assembly: AssemblyProduct("BrokenEvent.FLVEx")]
-[assembly: AssemblyCopyright("© 2018 Broken Event. All rights reserved.")]
+[assembly: AssemblyCopyright("© 2018-2020 Broken Event. All rights reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

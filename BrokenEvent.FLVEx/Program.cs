@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-using BrokenEvent.FLVEx.FLV;
+using BrokenEvent.LibFLVEx.FLV;
 using BrokenEvent.Shared.Algorithms;
 
 namespace BrokenEvent.FLVEx

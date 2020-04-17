@@ -2,7 +2,7 @@
 
 namespace BrokenEvent.FLVEx
 {
-  [CommandModel("BrokenEvent.FLVEx, (c) 2018 BrokenEvent. All rights reserved.")]
+  [CommandModel("BrokenEvent.FLVEx, (c) 2018-2020 BrokenEvent. All rights reserved.")]
   class CmdModel
   {
     [Command(0, "Input FLV file.", "inFile", isRequired: true)]

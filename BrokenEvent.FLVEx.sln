@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrokenEvent.FLVEx", "Broken
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrokenEvent.FLVEx.Batch", "BrokenEvent.FLVEx.Batch\BrokenEvent.FLVEx.Batch.csproj", "{0A0F6304-0D25-454D-A524-4BBA97495420}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrokenEvent.LibFLVEx", "BrokenEvent.LibFLVEx\BrokenEvent.LibFLVEx.csproj", "{FAFC8D5A-F811-4135-99A4-4A08A33C4ABF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{0A0F6304-0D25-454D-A524-4BBA97495420}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A0F6304-0D25-454D-A524-4BBA97495420}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A0F6304-0D25-454D-A524-4BBA97495420}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FAFC8D5A-F811-4135-99A4-4A08A33C4ABF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FAFC8D5A-F811-4135-99A4-4A08A33C4ABF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FAFC8D5A-F811-4135-99A4-4A08A33C4ABF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FAFC8D5A-F811-4135-99A4-4A08A33C4ABF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

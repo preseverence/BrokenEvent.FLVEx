@@ -37,6 +37,9 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\BrokenEvent.FLVEx\Shared\CommandLineParser.cs">
+      <Link>CommandLineParser.cs</Link>
+    </Compile>
     <Compile Include="CmdModel.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -48,6 +51,10 @@
     <ProjectReference Include="..\BrokenEvent.FLVEx\BrokenEvent.FLVEx.csproj">
       <Project>{17C2C0ED-F3CA-458D-AB13-AA29042DA426}</Project>
       <Name>BrokenEvent.FLVEx</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\BrokenEvent.LibFLVEx\BrokenEvent.LibFLVEx.csproj">
+      <Project>{FAFC8D5A-F811-4135-99A4-4A08A33C4ABF}</Project>
+      <Name>BrokenEvent.LibFLVEx</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
