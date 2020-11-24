@@ -5,11 +5,14 @@ using System.Linq;
 
 using BrokenEvent.LibFLVEx.FLV.Packets;
 using BrokenEvent.LibFLVEx.Shared;
+using BrokenEvent.LibFLVEx.Utils;
 
 namespace BrokenEvent.LibFLVEx.FLV
 {
   public class FLVFile: IDisposable
   {
+    private ILogger logger = new ConsoleLogger();
+
     public FLVHeader Header { get; }
     public List<BasePacket> Packets { get; } = new List<BasePacket>();
     public long Size { get; }
@@ -65,14 +68,14 @@ namespace BrokenEvent.LibFLVEx.FLV
       get { return Packets.Count(e => e.PacketType == PacketType.AudioPayload); }
     }
 
-    public uint VideoDataBytes
+    public long VideoDataBytes
     {
-      get { return (uint)Packets.Where(e => e.PacketType == PacketType.VideoPayload).Sum(e => e.PayloadSize); }
+      get { return Packets.Where(e => e.PacketType == PacketType.VideoPayload).Sum(e => e.PayloadSize); }
     }
 
-    public uint AudioDataBytes
+    public long AudioDataBytes
     {
-      get { return (uint)Packets.Where(e => e.PacketType == PacketType.AudioPayload).Sum(e => e.PayloadSize); }
+      get { return Packets.Where(e => e.PacketType == PacketType.AudioPayload).Sum(e => e.PayloadSize); }
     }
 
     public TimeSpan Duration
@@ -87,23 +90,25 @@ namespace BrokenEvent.LibFLVEx.FLV
 
     public void FilterPackets()
     {
-      int count = 0;
       int i = 0;
+
+      Remover<BasePacket> remover = new Remover<BasePacket>(Packets);
+
       while (i < Packets.Count)
       {
         if (Packets[i].PacketType != PacketType.AMFMetadata &&
             Packets[i].PacketType != PacketType.AudioPayload &&
             Packets[i].PacketType != PacketType.VideoPayload)
         {
-          Packets.RemoveAt(i);
-          count++;
+          remover.Remove(ref i);
         }
         else
-          i++;
+          remover.Skip(ref i);
       }
 
-      if (Verbose)
-        Console.WriteLine("Packets filtering done. Removed: {0} packets", count);
+      remover.Finish(Packets.Count);
+
+      logger.Log("Packets filtering done. Removed: {0} packets", remover.RemovedCount);
     }
 
     public void FixTimeStamps()
@@ -117,8 +122,7 @@ namespace BrokenEvent.LibFLVEx.FLV
             delta = packet.TimeStamp;
         }
 
-      if (Verbose)
-        Console.WriteLine("Found initial time delta: " + delta);
+      logger.Log("Found initial time delta: {0}", delta);
 
       foreach (BasePacket packet in Packets)
         if (packet.TimeStamp.TotalSeconds > 0)
@@ -129,8 +133,7 @@ namespace BrokenEvent.LibFLVEx.FLV
     {
       if (Metadata == null)
       {
-        if (Verbose)
-          Console.WriteLine("No metadata packet found. Creating new.");
+        logger.Log("No metadata packet found. Creating new.");
         Metadata = new MetadataPacket(FLVHeader.HEADER_SIZE);
         Packets.Insert(0, Metadata);
       }
@@ -159,8 +162,7 @@ namespace BrokenEvent.LibFLVEx.FLV
       if (lastKeyFrame != null)
         Metadata.Variables["lastkeyframetimestamp"] = lastKeyFrame.TimeStamp.TotalSeconds;
 
-      if (Verbose)
-        Console.WriteLine("  Video duration: {0} seconds", maxTimeStamp.TotalSeconds);
+      logger.Log("  Video duration: {0} seconds", maxTimeStamp.TotalSeconds);
 
       // first audio/video packets
       VideoPacket videoPacket = (VideoPacket)Packets.First(e => e.PacketType == PacketType.VideoPayload);
@@ -177,8 +179,7 @@ namespace BrokenEvent.LibFLVEx.FLV
         Metadata.Variables.Remove("audiodelay");
         Metadata.Variables.Remove("audiosize");
 
-        if (Verbose)
-          Console.WriteLine("  Audio: no");
+        logger.Log("  Audio: no");
       }
       else
       { 
@@ -189,30 +190,27 @@ namespace BrokenEvent.LibFLVEx.FLV
         Metadata.Variables["audiocodecid"] = audioPacket.GetSoundFormat();
         Metadata.Variables["audiodelay"] = videoPacket.TimeStamp.TotalSeconds;
         Metadata.Variables["audiosize"] = (double)AudioDataBytes;
-        if (Verbose)
-          Console.WriteLine(
-              "  Audio: {0} Hz {1} bits {2} Codec: {3} Delay {4} sec",
-              audioPacket.GetSampleRate(),
-              audioPacket.GetSoundSize(),
-              audioPacket.GetStereo() ? "stereo" : "mono",
-              audioPacket.SoundFormat,
-              videoPacket.TimeStamp.TotalSeconds
-            );
+        logger.Log(
+            "  Audio: {0} Hz {1} bits {2} Codec: {3} Delay {4} sec",
+            audioPacket.GetSampleRate(),
+            audioPacket.GetSoundSize(),
+            audioPacket.GetStereo() ? "stereo" : "mono",
+            audioPacket.SoundFormat,
+            videoPacket.TimeStamp.TotalSeconds
+          );
       }
 
       // update video data
       Metadata.Variables["videosize"] = (double)VideoDataBytes;
       Metadata.Variables["videocodecid"] = videoPacket.GetCodecId();
-      if (Verbose)
-        Console.WriteLine("  Video codec: {0}", videoPacket.CodecId);
+      logger.Log("  Video codec: {0}", videoPacket.CodecId);
 
       videoPacket = (VideoPacket)Packets.FirstOrDefault(e => e.PacketType == PacketType.VideoPayload && ((VideoPacket)e).Width > 0 && ((VideoPacket)e).Height > 0);
       if (videoPacket != null)
       {
         Metadata.Variables["width"] = (double)videoPacket.Width;
         Metadata.Variables["height"] = (double)videoPacket.Height;
-        if (Verbose)
-          Console.WriteLine("  Video dimensions: {0}x{1}", videoPacket.Width, videoPacket.Height);
+        logger.Log("  Video dimensions: {0}x{1}", videoPacket.Width, videoPacket.Height);
       }
     }
 
@@ -256,7 +254,17 @@ namespace BrokenEvent.LibFLVEx.FLV
       }
     }
 
-    public bool Verbose { get; set; } = true;
+    public ILogger Logger
+    {
+      get { return logger; }
+      set
+      {
+        if (value == null)
+          throw new ArgumentNullException(nameof(value));
+
+        logger = value;
+      }
+    }
 
     public void Dispose()
     {
@@ -266,8 +274,7 @@ namespace BrokenEvent.LibFLVEx.FLV
 
     public void CutFromStart(TimeSpan start)
     {
-      if (Verbose)
-        Console.WriteLine("Searching for keyframe nearest to {0}", (int)start.TotalSeconds);
+      logger.Log("Searching for keyframe nearest to {0}...", (int)start.TotalSeconds);
 
       int keyframeIndex = -1;
       int headerIndex = -1;
@@ -282,57 +289,52 @@ namespace BrokenEvent.LibFLVEx.FLV
 
         if (packet.TimeStamp > start)
           break;
+
         keyframeIndex = j;
       }
 
       if (keyframeIndex == -1)
       {
-        if (Verbose)
-          Console.WriteLine("Keyframe not found.");
+        logger.Log("Keyframe not found.");
         return;
       }
 
       if (headerIndex == -1)
       {
-        if (Verbose)
-          Console.WriteLine("Header keyframe not found.");
+        logger.Log("Header keyframe not found.");
         return;
       }
 
-      if (Verbose)
-        Console.WriteLine("Keyframe found at #{0}, header keyframe found at #{1}", keyframeIndex, headerIndex);
+      logger.Log("Keyframe found at #{0}, header keyframe found at #{1}", keyframeIndex, headerIndex);
 
-      int removed = 0;
       int i = 0;
-      while (i < keyframeIndex)
+      Remover<BasePacket> remover = new Remover<BasePacket>(Packets, keyframeIndex);
+
+      while (i < remover.Limit)
       {
         BasePacket packet = Packets[i];
 
         if ((packet.PacketType == PacketType.VideoPayload ||
             packet.PacketType == PacketType.AudioPayload) && i != headerIndex)
         {
-          // remove
-          Packets.RemoveAt(i);
-          // update removed counter
-          removed++;
-          // move end pointer
-          keyframeIndex--;
+          remover.Remove(ref i);
         }
         else
-          i++;
+          remover.Skip(ref i);
       }
 
-      if (Verbose)
-        Console.WriteLine("Removed {0} packets", removed);
+      remover.Finish(remover.Limit);
+
+      logger.Log("Removed {0} packets", remover.RemovedCount);
     }
 
     public void CutToEnd(TimeSpan end)
     {
-      if (Verbose)
-        Console.WriteLine("Removing video and audio packets later than {0}", (int)end.TotalSeconds);
+      logger.Log("Removing video and audio packets later than {0}...", (int)end.TotalSeconds);
 
       int i = 0;
-      int removed = 0;
+      Remover<BasePacket> remover = new Remover<BasePacket>(Packets);
+
       while (i < Packets.Count)
       {
         BasePacket packet = Packets[i];
@@ -341,28 +343,28 @@ namespace BrokenEvent.LibFLVEx.FLV
             packet.PacketType == PacketType.AudioPayload) &&
             packet.TimeStamp > end)
         {
-          Packets.RemoveAt(i);
-          removed++;
+          remover.Remove(ref i);
         }
         else
-          i++;
+          remover.Skip(ref i);
       }
 
-      if (Verbose)
-        Console.WriteLine("Removed {0} packets", removed);
+      remover.Finish(Packets.Count);
+
+      logger.Log("Removed {0} packets", remover.RemovedCount);
     }
 
     public void PrintReport()
     {
-      Console.WriteLine("  Flags: {0}. Packets: {1}", Header.Flags, Packets.Count);
-      uint audioDataBytes = AudioDataBytes;
-      uint videoDataBytes = VideoDataBytes;
+      logger.Log("  Flags: {0}. Packets: {1}", Header.Flags, Packets.Count);
+      long audioDataBytes = AudioDataBytes;
+      long videoDataBytes = VideoDataBytes;
       TimeSpan start = Packets.Min(p => p.TimeStamp);
       TimeSpan end = Packets.Max(p => p.TimeStamp);
 
-      Console.WriteLine(" -- Audio: {0} bytes ({1:P1}) ({2} packets)", audioDataBytes, (float)audioDataBytes / Size, Packets.Count(p => p.PacketType == PacketType.AudioPayload));
-      Console.WriteLine(" -- Video: {0} bytes ({1:P1}) ({2} packets)", videoDataBytes, (float)videoDataBytes / Size, Packets.Count(p => p.PacketType == PacketType.VideoPayload));
-      Console.WriteLine(" -- Duration: {0} seconds (from {1} to {2})", (int)(end - start).TotalSeconds, (int)start.TotalSeconds, (int)end.TotalSeconds);
+      logger.Log(" -- Audio: {0} bytes ({1:P1}) ({2} packets)", audioDataBytes, (float)audioDataBytes / Size, Packets.Count(p => p.PacketType == PacketType.AudioPayload));
+      logger.Log(" -- Video: {0} bytes ({1:P1}) ({2} packets)", videoDataBytes, (float)videoDataBytes / Size, Packets.Count(p => p.PacketType == PacketType.VideoPayload));
+      logger.Log(" -- Duration: {0} seconds (from {1} to {2})", (int)(end - start).TotalSeconds, (int)start.TotalSeconds, (int)end.TotalSeconds);
     }
   }
 }

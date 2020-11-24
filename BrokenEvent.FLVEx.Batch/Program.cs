@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using BrokenEvent.LibFLVEx.FLV;
+using BrokenEvent.LibFLVEx.Utils;
 using BrokenEvent.Shared.Algorithms;
 
 namespace BrokenEvent.FLVEx.Batch
@@ -61,7 +62,7 @@ namespace BrokenEvent.FLVEx.Batch
       {
         using (FLVFile file = new FLVFile(inputStream))
         {
-          file.Verbose = false;
+          file.Logger = new VoidLogger();
           if (model.FilterPackets)
             file.FilterPackets();
           if (model.FixTimestamps)
