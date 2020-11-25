@@ -39,6 +39,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ParserTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RemoverTests.cs" />
   </ItemGroup>
@@ -46,6 +47,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\BrokenEvent.FLVEx\BrokenEvent.FLVEx.csproj">
+      <Project>{17C2C0ED-F3CA-458D-AB13-AA29042DA426}</Project>
+      <Name>BrokenEvent.FLVEx</Name>
+    </ProjectReference>
     <ProjectReference Include="..\BrokenEvent.LibFLVEx\BrokenEvent.LibFLVEx.csproj">
       <Project>{FAFC8D5A-F811-4135-99A4-4A08A33C4ABF}</Project>
       <Name>BrokenEvent.LibFLVEx</Name>

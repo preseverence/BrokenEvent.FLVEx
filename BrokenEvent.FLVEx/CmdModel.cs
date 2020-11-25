@@ -1,4 +1,6 @@
-﻿using BrokenEvent.Shared.Algorithms;
+﻿using System;
+
+using BrokenEvent.Shared.Algorithms;
 
 namespace BrokenEvent.FLVEx
 {
@@ -26,10 +28,43 @@ namespace BrokenEvent.FLVEx
     [Command("preserve", "Preserves last file changes date of the file.", isFlag: true)]
     public bool PreserveDate { get; set; }
 
-    [Command("from", "Time of start of processed window, in seconds")]
+    [Command("from", "Time of start of processed window, in seconds, or in format [hh:]mm:ss")]
+    public string From
+    {
+      get { return FromSeconds?.ToString(); }
+      set { FromSeconds = value == null ? null : (int?)ParseSeconds(value); }
+    }
+
+    [Command("to", "Time of end of processed window, in seconds, or in format [hh:]mm:ss")]
+    public string To
+    {
+      get { return ToSeconds?.ToString(); }
+      set { ToSeconds = value == null ? null : (int?)ParseSeconds(value); }
+    }
+
     public int? FromSeconds { get; set; }
 
-    [Command("to", "Time of end of processed window, in seconds")]
     public int? ToSeconds { get; set; }
+
+    public static int ParseSeconds(string s)
+    {
+      int result;
+      if (int.TryParse(s, out result))
+        return result;
+
+      string[] strs = s.Split(':');
+
+      switch (strs.Length)
+      {
+        case 2:
+          return int.Parse(strs[0]) * 60 + int.Parse(strs[1]);
+
+        case 3:
+          return int.Parse(strs[0]) * 3600 + int.Parse(strs[1]) * 60 + int.Parse(strs[2]);
+
+        default:
+          throw new FormatException($"Invalid time string: {s}. Value should be integer or in format of [hh:]mm:ss");
+      }
+    }
   }
 }
