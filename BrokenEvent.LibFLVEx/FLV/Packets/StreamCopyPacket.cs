@@ -7,6 +7,8 @@ namespace BrokenEvent.LibFLVEx.FLV.Packets
 {
   public class StreamCopyPacket : BasePacket
   {
+    private const int BUFFER_SIZE = 262144;
+
     internal StreamCopyPacket(DataStream stream, uint prevPacketSize, PacketType type): base(stream, prevPacketSize, type) { }
 
     protected void SkipPayload(DataStream stream)
@@ -21,7 +23,7 @@ namespace BrokenEvent.LibFLVEx.FLV.Packets
       if (src.Position != Offset)
         src.Position = Offset;
 
-      byte[] buffer = new byte[65536];
+      byte[] buffer = new byte[BUFFER_SIZE];
       uint bytesRemains = PayloadSize;
 
       while (bytesRemains > 0)
