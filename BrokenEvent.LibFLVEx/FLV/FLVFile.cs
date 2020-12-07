@@ -162,7 +162,7 @@ namespace BrokenEvent.LibFLVEx.FLV
       if (lastKeyFrame != null)
         Metadata.Variables["lastkeyframetimestamp"] = lastKeyFrame.TimeStamp.TotalSeconds;
 
-      logger.Log("  Video duration: {0} seconds", maxTimeStamp.TotalSeconds);
+      logger.Log(" -- Video duration: {0} seconds", maxTimeStamp.TotalSeconds);
 
       // first audio/video packets
       VideoPacket videoPacket = (VideoPacket)Packets.First(e => e.PacketType == PacketType.VideoPayload);
@@ -179,7 +179,7 @@ namespace BrokenEvent.LibFLVEx.FLV
         Metadata.Variables.Remove("audiodelay");
         Metadata.Variables.Remove("audiosize");
 
-        logger.Log("  Audio: no");
+        logger.Log(" -- Audio: no");
       }
       else
       { 
@@ -191,7 +191,7 @@ namespace BrokenEvent.LibFLVEx.FLV
         Metadata.Variables["audiodelay"] = videoPacket.TimeStamp.TotalSeconds;
         Metadata.Variables["audiosize"] = (double)AudioDataBytes;
         logger.Log(
-            "  Audio: {0} Hz {1} bits {2} Codec: {3} Delay {4} sec",
+            " -- Audio: {0} Hz {1} bits {2} Codec: {3} Delay {4} sec",
             audioPacket.GetSampleRate(),
             audioPacket.GetSoundSize(),
             audioPacket.GetStereo() ? "stereo" : "mono",
@@ -203,14 +203,14 @@ namespace BrokenEvent.LibFLVEx.FLV
       // update video data
       Metadata.Variables["videosize"] = (double)VideoDataBytes;
       Metadata.Variables["videocodecid"] = videoPacket.GetCodecId();
-      logger.Log("  Video codec: {0}", videoPacket.CodecId);
+      logger.Log(" -- Video codec: {0}", videoPacket.CodecId);
 
       videoPacket = (VideoPacket)Packets.FirstOrDefault(e => e.PacketType == PacketType.VideoPayload && ((VideoPacket)e).Width > 0 && ((VideoPacket)e).Height > 0);
       if (videoPacket != null)
       {
         Metadata.Variables["width"] = (double)videoPacket.Width;
         Metadata.Variables["height"] = (double)videoPacket.Height;
-        logger.Log("  Video dimensions: {0}x{1}", videoPacket.Width, videoPacket.Height);
+        logger.Log(" -- Video dimensions: {0}x{1}", videoPacket.Width, videoPacket.Height);
       }
     }
 
@@ -356,7 +356,7 @@ namespace BrokenEvent.LibFLVEx.FLV
 
     public void PrintReport()
     {
-      logger.Log("  Flags: {0}. Packets: {1}", Header.Flags, Packets.Count);
+      logger.Log(" -- Flags: {0}. Packets: {1}", Header.Flags, Packets.Count);
       long audioDataBytes = AudioDataBytes;
       long videoDataBytes = VideoDataBytes;
       TimeSpan start = Packets.Min(p => p.TimeStamp);

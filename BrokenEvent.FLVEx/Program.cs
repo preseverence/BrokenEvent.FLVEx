@@ -24,6 +24,12 @@ namespace BrokenEvent.FLVEx
         return 1;
       }
 
+      if (model.FromSeconds.HasValue && model.ToSeconds.HasValue && model.FromSeconds.Value >= model.ToSeconds.Value)
+      {
+        Console.WriteLine("Start of output window (from) should be larger than end (to).");
+        return 1;
+      }
+
       Console.WriteLine("Input file: {0}", model.InputFile);
 
       Stream inputStream;

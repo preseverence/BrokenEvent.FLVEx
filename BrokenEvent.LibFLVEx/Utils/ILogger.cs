@@ -78,9 +78,7 @@ namespace JetBrains.Annotations
   ///   ShowError("Failed: {0}"); // Warning: Non-existing argument in format string
   /// }
   /// </code></example>
-  [AttributeUsage(
-    AttributeTargets.Constructor | AttributeTargets.Method |
-    AttributeTargets.Property | AttributeTargets.Delegate)]
+  [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Delegate)]
   public sealed class StringFormatMethodAttribute : Attribute
   {
     /// <param name="formatParameterName">
