@@ -37,12 +37,12 @@ namespace BrokenEvent.FLVEx
       {
         Console.WriteLine("Loading whole file to memory.");
         inputStream = new MemoryStream();
-        using (FileStream fs = new FileStream(model.InputFile, FileMode.Open, FileAccess.Read, FileShare.Write))
+        using (FileStream fs = new FileStream(model.InputFile, FileMode.Open, FileAccess.Read, FileShare.Read))
           fs.CopyTo(inputStream);
         inputStream.Position = 0;
       }
       else
-        inputStream = new FileStream(model.InputFile, FileMode.Open, FileAccess.Read, FileShare.Write);
+        inputStream = new FileStream(model.InputFile, FileMode.Open, FileAccess.Read, FileShare.Read);
 
       DateTime fileDate = File.GetLastWriteTime(model.InputFile);
 
